@@ -1,0 +1,143 @@
+syntax = "proto3";
+
+package cart;
+
+option go_package = "./cart";
+
+service cart {
+
+    // 添加商品到购物车（若商品已存在则增加数量）
+    rpc AddItem(AddItemReq) returns (AddItemResp);
+    
+    // 更新购物车中商品的数量
+    rpc UpdateItem(UpdateItemReq) returns (UpdateItemResp);
+    
+    // 从购物车中删除商品
+    rpc RemoveItem(RemoveItemReq) returns (RemoveItemResp);
+    
+    // 获取用户的完整购物车信息（包含商品详情）
+    rpc GetCart(GetCartReq) returns (GetCartResp);
+    
+    // 清空购物车（删除该用户所有商品）
+    rpc ClearCart(ClearCartReq) returns (ClearCartResp);
+    
+    // 选中/取消选中购物车中的商品（用于下单结算）
+    rpc CheckItem(CheckItemReq) returns (CheckItemResp);
+    
+    // 批量获取购物车中选中商品的信息（用于订单创建前校验）
+    rpc GetCheckedItems(GetCheckedItemsReq) returns (GetCheckedItemsResp);
+
+
+}
+
+
+// 添加商品
+// -------------------------------------------------------------
+message AddItemReq {
+  int64 user_id = 1;     // 用户ID
+  int64 product_id = 2;  // 商品ID
+  int64 quantity = 3;    // 添加数量（若购物车已有该商品，则累加）
+}
+
+message AddItemResp {
+  bool success = 1;      // 是否成功
+  string message = 2;    // 错误信息（如有）
+}
+
+
+// 更新商品数量
+// -------------------------------------------------------
+message UpdateItemReq {
+  int64 user_id = 1;     // 用户ID
+  int64 product_id = 2;  // 商品ID
+  int64 quantity = 3;    // 新的数量（若为0，则删除该商品）
+}
+
+message UpdateItemResp {
+  bool success = 1;
+  string message = 2;
+}
+
+
+// 删除商品
+// ------------------------------------------
+message RemoveItemReq {
+  int64 user_id = 1;     // 用户ID
+  int64 product_id = 2;  // 要删除的商品ID
+}
+
+message RemoveItemResp {
+  bool success = 1;
+  string message = 2;
+}
+
+
+// 获取购物车
+// ---------------------------------------------------
+message GetCartReq {
+  int64 user_id = 1;     // 用户ID
+}
+
+message GetCartResp {
+  Cart cart = 1;         // 购物车完整信息
+}
+
+
+// -------------------------------------------------
+message ClearCartReq {
+  int64 user_id = 1;     // 用户ID
+}
+
+message ClearCartResp {
+  bool success = 1;
+  string message = 2;
+}
+
+
+// 选中/取消选中商品
+// --------------------------------------------------
+message CheckItemReq {
+  int64 user_id = 1;     // 用户ID
+  int64 product_id = 2;  // 商品ID
+  bool checked = 3;      // true=选中，false=取消选中
+}
+
+message CheckItemResp {
+  bool success = 1;
+  string message = 2;
+}
+
+
+message GetCheckedItemsReq {
+  int64 user_id = 1;     // 用户ID
+}
+
+message GetCheckedItemsResp {
+  repeated CartItem items = 1; // 选中的商品列表
+  double total_price = 2;       // 选中商品总金额
+}
+
+
+// 购物车商品项（单个商品在购物车中的记录）
+message CartItem {
+  int64 product_id = 1;   // 商品ID
+  string product_name = 2; // 商品名称（冗余存储，避免频繁调用商品服务，但需注意数据一致性）
+  string product_image = 3; // 商品主图URL
+  double price = 4;       // 商品当前单价（冗余存储，下单时需重新校验）
+  int64 quantity = 5;     // 数量
+  bool checked = 6;       // 是否被选中（true=选中，false=未选中）
+  int64 create_time = 7;  // 加入购物车的时间（Unix时间戳）
+  int64 update_time = 8;  // 最近更新时间（Unix时间戳）
+}
+
+// 购物车整体信息
+message Cart {
+  int64 user_id = 1;                 // 用户ID
+  repeated CartItem items = 2;       // 购物车中的商品列表
+  int64 total_count = 3;             // 商品总件数（所有商品数量之和）
+  double total_price = 4;            // 总金额（选中商品的总价，未选中不计入）
+  int64 update_time = 5;             // 购物车最后更新时间
+}
+
+
+

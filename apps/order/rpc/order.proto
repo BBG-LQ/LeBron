@@ -1,0 +1,165 @@
+syntax = "proto3";
+
+package order;
+option go_package = "./order";
+
+
+service Order {
+
+// 创建订单（简单版本，仅包含用户ID和商品ID）
+rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse);
+
+// 创建订单前的检查（如库存、价格等）
+ rpc CreateOrderCheck(CreateOrderRequest) returns (CreateOrderResponse);
+
+// 回滚订单（用于事务补偿，例如分布式事务失败时撤销）
+rpc RollbackOrder (CreateOrderRequest) returns (CreateOrderResponse);
+// 根据订单ID查询订单详情（返回完整订单信息）
+rpc GetOrderById(GetOrderByIdReq) returns (GetOrderByIdResp);
+
+// 分页查询订单列表（返回订单项视图
+
+rpc Orders(OrdersRequest) returns(OrdersResponse);
+
+
+
+
+
+ // DTM（分布式事务管理器）正向操作：创建订单（包含完整订单信息）
+rpc CreateOrderDTM(AddOrderReq) returns (AddOrderResp);
+
+// DTM 反向操作：回滚创建订单（用于 Saga/TCC 模式的补偿）
+rpc CreateOrderDTMRevert(AddOrderReq) returns(AddOrderResp);
+
+
+
+// ===== TCC 参与者接口 =====
+  rpc TryCreateOrder(TryCreateOrderReq) returns (TryCreateOrderResp);
+  rpc ConfirmCreateOrder(ConfirmCreateOrderReq) returns (ConfirmCreateOrderResp);
+  rpc CancelCreateOrder(CancelCreateOrderReq) returns (CancelCreateOrderResp);
+
+
+
+  
+ 
+   
+  
+  
+}
+
+// 创建订单请求（极简版，只包含用户ID和商品ID，可能还有其他默认逻辑）
+message CreateOrderRequest {
+  int64 uid = 1; // 用户ID
+  int64 pid = 2; // 商品ID（单个商品，可能默认数量为1）
+}
+
+// 创建订单响应（空结构，成功与否由gRPC状态码表示）
+message CreateOrderResponse {
+}
+	
+	
+	
+	
+message AddOrderReq {
+  int64 userid = 1;           // 用户ID
+  int64 productid = 2;        // 商品ID
+  int64 quantity = 3;         // 数量
+  int64 postage = 4;          // 运费
+  int64 receiveAddressId = 5; // 收货地址ID
+}
+// 添加订单响应（返回生成的订单ID）
+message AddOrderResp {
+  string id = 1; // 订单ID
+}
+	
+	
+	
+// 根据ID查询订单请求
+message GetOrderByIdReq {
+  string id = 1; // 订单主键ID（数字类型，可能对应订单表自增ID）
+}
+// 根据ID查询订单响应
+message GetOrderByIdResp {
+  Orders order = 1; // 完整的订单信息
+}
+	
+
+
+// 订单列表查询请求
+message OrdersRequest {
+  int64 user_id = 1;   // 用户ID（筛选条件）
+  int32 status = 2;    // 订单状态（筛选条件，0 表示全部）
+  int64 cursor = 3;    // 分页游标（通常为上一页最后一条记录的ID或时间）
+  int32 ps = 4;        // 每页大小（page size）
+}
+// 订单列表查询响应
+message OrdersResponse {
+  repeated Orderitem orders = 1; // 订单项列表（注意：这里返回的是订单项，而非订单主表）
+  bool is_end = 2;              // 是否已到达末尾
+  string create_time = 3;       // 本次查询的基准时间（或可作额外信息）
+}
+
+
+// 订单主表结构
+message Orders {
+  string id = 1;                // 订单ID（字符串类型，可能为UUID）
+  int64 userid = 2;             // 用户ID
+  int64 shoppingid = 3;         // 购物车ID（关联的购物车记录）
+  double payment = 4;           // 实付金额
+  int64 paymenttype = 5;        // 支付方式（1-微信，2-支付宝等）
+  int64 postage = 6;            // 邮费/运费（单位为分或元）
+  int64 status = 7;             // 订单状态（0-待支付，1-已支付，2-已发货等）
+  int64 createTime = 8;         // 创建时间（Unix时间戳）
+  int64 updateTime = 9;         // 更新时间（Unix时间戳）
+}
+message Orderitem {
+  int64 id = 1;                  // 记录ID（订单项ID）
+  string orderid = 2;           // 订单编号（全局唯一）
+  int64 userid = 3;             // 用户ID
+  int64 proid = 4;              // 商品ID
+  string proname = 5;           // 商品名称
+  string proimage = 6;          // 商品图片URL
+  double currentunitprice = 7;  // 下单时商品的单价
+  int64 quantity = 8;           // 购买数量
+  double totalprice = 9;        // 该商品小计（单价*数量）
+  int64 createTime = 10;        // 创建时间（Unix时间戳）
+  int64 updateTime = 11;        // 最后更新时间（Unix时间戳）
+}
+
+
+
+message TryCreateOrderReq {
+    string OrderId = 1;
+    int64 UserId = 2;
+    int64 ProductId = 3;
+    int64 Quantity = 4;
+    int64 Postage = 5;
+    int64 ReceiveAddressId = 6;
+    // 从 User/Product 服务预校验得到的数据，避免 Try 中重复调用
+    string ReceiverName = 7;
+    string ReceiverPhone = 8;
+    string ReceiverProvince = 9;
+    string ReceiverCity = 10;
+    string ReceiverDistrict = 11;
+    string ReceiverDetailAddress = 12;
+    string ProductName = 13;
+    string ProductImage = 14;
+    double CurrentPrice = 15;
+}
+
+message TryCreateOrderResp {
+    int64 ShippingId = 1;  // 预生成的收货信息ID，供 Confirm 使用
+}
+
+message ConfirmCreateOrderReq {
+    string OrderId = 1;
+    int64 ShippingId = 2;
+}
+
+message ConfirmCreateOrderResp {}
+
+message CancelCreateOrderReq {
+    string OrderId = 1;
+}
+
+message CancelCreateOrderResp {}

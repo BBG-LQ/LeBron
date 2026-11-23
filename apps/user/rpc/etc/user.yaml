@@ -1,0 +1,21 @@
+Name: user.rpc
+ListenOn: 0.0.0.0:8081
+Mode: dev
+
+
+Etcd:
+  Hosts:
+  - 127.0.0.1:2379
+  Key: user.rpc
+
+
+
+
+DB:
+  DataSource: root:123456@tcp(127.0.0.1:3306)/user?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
+Cache:
+  - Host: 127.0.0.1:6379
+    Pass: 
+
+#用户密码加密时使用
+Salt: HWVOFkGgPTryzICwd7qnJaZR9KQ2i8xe

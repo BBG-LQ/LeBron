@@ -1,0 +1,49 @@
+package main
+
+import (
+	"flag"
+	"fmt"
+
+	"lebron/apps/order/rpc/internal/config"
+	"lebron/apps/order/rpc/internal/server"
+	"lebron/apps/order/rpc/internal/svc"
+	"lebron/apps/order/rpc/order"
+
+	"github.com/zeromicro/go-zero/core/conf"
+	"github.com/zeromicro/go-zero/core/service"
+	"github.com/zeromicro/go-zero/zrpc"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+
+	"github.com/dtm-labs/dtmdriver"
+	_ "github.com/dtm-labs/dtmdriver-gozero"
+)
+
+var configFile = flag.String("f", "etc/order.yaml", "the config file")
+
+func main() {
+	flag.Parse()
+
+	// ---------- 新增：初始化 DTM 驱动 ----------
+	err := dtmdriver.Use("dtm-driver-gozero")
+	if err != nil {
+		panic(fmt.Errorf("failed to init dtm driver: %v", err))
+	}
+	// ---------------------------------------
+
+	var c config.Config
+	conf.MustLoad(*configFile, &c)
+	ctx := svc.NewServiceContext(c)
+
+	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
+		order.RegisterOrderServer(grpcServer, server.NewOrderServer(ctx))
+
+		if c.Mode == service.DevMode || c.Mode == service.TestMode {
+			reflection.Register(grpcServer)
+		}
+	})
+	defer s.Stop()
+
+	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)
+	s.Start()
+}

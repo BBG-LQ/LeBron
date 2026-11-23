@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package product;
+
+option go_package = "./product";
+
+
+
+
+
+service Product {
+
+    // Product 获取单个商品详情
+    rpc getProductDetail (productReq) returns (ProductItem);
+    
+
+    // Products 批量获取商品信息。
+    rpc getProducts (ProductsRequest) returns (ProductsResponse);
+     
+    // ProductList 查询商品列表
+    rpc getProductlist (ProductListRequest) returns (ProductListResponse);
+    // OperationProducts 管理后台批量操作商品。
+
+
+    rpc OperationProducts (OperationProductsRequest) returns (OperationProductsResponse);
+
+
+     // ===== TCC 参与者接口 =====
+    rpc TryDeductStock(TryDeductStockReq) returns (TryDeductStockResp);
+    rpc ConfirmDeductStock(ConfirmDeductStockReq) returns (ConfirmDeductStockResp);
+    rpc CancelDeductStock(CancelDeductStockReq) returns (CancelDeductStockResp);
+
+
+}
+
+//单个商品详情
+
+message productReq {
+  int64 product_id = 1;
+}
+    
+
+message ProductItem {
+  int64 product_id = 1;
+  string name = 2;
+  string description = 3;
+  string image_url = 4;
+  int64 create_time = 5;
+  int64 stock = 6;
+  int64 cateid = 7;
+  double price = 8;
+  int64 status = 9;
+}
+
+//Products 批量获取商品信息。
+
+message ProductsRequest {
+  string product_ids = 1;
+}
+message ProductsResponse {
+  map<int64, ProductItem>  products = 1;
+}
+
+
+// 商品列表查询请求（支持分页和分类筛选）
+message ProductListRequest {
+  int32 category_id = 1; // 分类ID（0 表示全部）
+  int64 cursor = 2;      // 分页游标（通常为上一页最后一条记录的ID或时间戳）
+  int32 ps = 3;          // 每页大小（page size）
+  int64 product_id = 4;  // 可选：指定商品ID（用于定位或精确查询）
+}	
+message ProductListResponse {
+  bool is_end = 1;                // 是否已到达列表末尾
+  int64 timestamp = 2;            // 当前查询的时间戳（可用于缓存或同步）
+  int64 product_id = 3;           // 当前页最后一条商品的ID（便于下一页游标）
+  repeated ProductItem products = 4; // 商品列表
+}
+
+
+// 运营精选商品请求（无参数）
+message OperationProductsRequest {
+}
+// 运营精选商品响应：返回推荐的商品列表
+message OperationProductsResponse {
+  repeated ProductItem products = 1; // 精选商品列表
+}
+
+
+message TryDeductStockReq {
+    int64 ProductId = 1;
+    int64 Quantity = 2;
+}
+
+message TryDeductStockResp {
+    bool Success = 1;
+}
+
+message ConfirmDeductStockReq {
+    int64 ProductId = 1;
+    int64 Quantity = 2;
+}
+
+message ConfirmDeductStockResp {}
+
+message CancelDeductStockReq {
+    int64 ProductId = 1;
+    int64 Quantity = 2;
+}
+
+message CancelDeductStockResp {}

@@ -1,0 +1,83 @@
+# ---------- Go 编译/测试产物 ----------
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+*.prof
+*.cover
+*.coverprofile
+coverage.*
+
+# 编译输出目录
+/bin/
+/dist/
+/build/
+/tmp/
+tmp/
+
+# Go 依赖目录：如果项目提交 vendor，请保留下面这行注释
+# /vendor/
+
+# ---------- 日志 ----------
+*.log
+/logs/
+
+# ---------- 本地环境与本地配置覆盖 ----------
+/apps/*/rpc/*/etc/*.yaml
+
+/pkg/Dtm/conf.yml
+
+
+.env
+.env.*
+!.env.example
+*.local.yaml
+*.local.yml
+*.local.json
+config.local.*
+
+# ---------- IDE / 编辑器 ----------
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+.history/
+
+# ---------- 操作系统文件 ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------- 临时文件 / 缓存 / 备份 ----------
+.cache/
+*.tmp
+*.temp
+*.bak
+*.pid
+
+# ---------- 本地数据库文件（按需保留） ----------
+*.db
+*.sqlite
+*.sqlite3
+
+# ---------- 敏感证书/密钥（按需保留） ----------
+*.pem
+*.key
+
+# ---------- 项目内非源码文件（按需删除） ----------
+/leborn进度.xlsx
+/F..txt
+
+# ---------- 注意不要忽略 ----------
+# go.mod
+# go.sum
+# *.pb.go
+# *_gen.go
+# *.api
+# *.proto
+# apps/**/etc/*.yaml

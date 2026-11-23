@@ -1,0 +1,177 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "./user";
+
+
+//登录请求和响应
+message LoginRequest {
+    string username = 1;
+    string password = 2;
+}
+message LoginResponse {
+    int64 Id = 1;
+    string username = 2;
+    string Phone = 3;
+}
+
+
+//获取用户信息请求和响应
+message GetUserRequest {
+    int64 Id = 1;
+}
+message GetUserResponse {
+    UserInfo user = 1;
+}
+message UserInfo {
+
+    uint64 Id = 1;          //用户ID
+    string Username = 2;   //用户名
+    string Password = 3;   //用户密码，MD5加密
+    string Phone = 4;   //手机号
+    string Question = 5;   //找回密码问题
+    string Answer = 6;   //找回密码答案
+    int64  CreateTime = 7;  //创建时间
+    int64  UpdateTime = 8;  //更新时间
+}
+
+//添加收货地址
+message AddAddressRequest {
+    int64  uid = 1;   //uid
+    string Name = 2;     //收货人名称
+    string Phone = 3;       //手机号
+    int32  IsDefault = 4;   //是否为默认地址
+    string PostCode = 5;      //邮政编码
+    string Province = 6;    //省份/直辖市
+    string City = 7;        //城市
+    string Region = 8;         //区
+    string DetailAddress = 9;  //详细地址(街道)
+}
+message AddAddressResponse {
+}
+
+
+//编辑收货地址
+message EditAddressRequest {
+    int64  Id = 1;   //地址ID
+    int64  uid = 2;   //uid
+    string Name = 3;     //收货人名称
+    string Phone = 4;       //手机号
+    int32  IsDefault = 5;   //是否为默认地址
+    string PostCode = 6;      //邮政编码
+    string Province = 7;    //省份/直辖市
+    string City = 8;        //城市
+    string Region = 9;         //区
+    string DetailAddress = 10;  //详细地址(街道)
+}
+message EditAddressResponse {
+}
+
+//删除收货地址
+message DeleteAddressRequest {
+    int64  Id = 1;   //地址ID
+}
+message DeleteAddressResponse {
+}
+
+//获取收货地址列表
+message ListAddressesRequest {
+    int64  uid = 1;   //uid
+}
+message ListAddressesResponse {
+    repeated UserReceiveAddress addresses = 1;
+}
+message UserReceiveAddress {
+    uint64 Id = 1;   //地址ID
+    uint64 Uid = 2;   //用户ID
+    string Name = 3;     //收货人名称
+    string Phone = 4;       //手机号
+    int32  IsDefault = 5;   //是否为默认地址
+    string PostCode = 6;      //邮政编码
+    string Province = 7;    //省份/直辖市
+    string City = 8;        //城市
+    string Region = 9;         //区
+    string DetailAddress = 10;  //详细地址(街道)
+    int32 IsDelete = 11;
+    int64 CreateTime = 12;
+    int64 UpdateTime = 13;
+}
+
+//添加收藏
+message AddFavoriteRequest {
+    int64  uid = 1;   //uid
+    int64  productId = 2;   //商品ID
+}
+message AddFavoriteResponse {
+}
+
+//删除收藏
+message DeleteFavoriteRequest {
+    int64  id = 1;   //id
+    
+}
+message DeleteFavoriteResponse {
+}
+
+//获取收藏列表
+message ListFavoritesRequest {
+    int64  uid = 1;   //uid
+}
+message ListFavoritesResponse {
+    repeated int64 ProductId = 1;
+}
+
+
+//根据主键id,查询收获地址
+message GetAddressRequest {
+    int64  Id = 1;   //地址ID
+}
+message GetAddressResponse {
+    UserReceiveAddress address = 1;
+}
+
+
+
+service User {
+
+    //登录
+    rpc Login(LoginRequest) returns (LoginResponse); 
+
+    //获取用户信息
+    rpc GetUser(GetUserRequest) returns (GetUserResponse);
+
+
+
+    //添加收货地址
+    rpc AddAddress(AddAddressRequest) returns (AddAddressResponse);
+
+    //根据主键id,查询收获地址
+    rpc GetAddress(GetAddressRequest) returns (GetAddressResponse);
+
+    //编辑收货地址
+    rpc EditAddress(EditAddressRequest) returns (EditAddressResponse);
+
+
+    //删除收货地址
+    rpc DeleteAddress(DeleteAddressRequest) returns (DeleteAddressResponse);
+
+    //获取收货地址列表
+    rpc ListAddresses(ListAddressesRequest) returns (ListAddressesResponse);
+
+    
+
+
+
+    //添加收藏
+    rpc AddFavorite(AddFavoriteRequest) returns (AddFavoriteResponse);
+
+    //删除收藏
+    rpc DeleteFavorite(DeleteFavoriteRequest) returns (DeleteFavoriteResponse);
+
+    //获取收藏列表
+    rpc ListFavorites(ListFavoritesRequest) returns (ListFavoritesResponse);
+
+    
+
+}
